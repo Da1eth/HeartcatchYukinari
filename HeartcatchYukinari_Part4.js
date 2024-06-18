@@ -20,6 +20,7 @@
             border: '1px solid #cccccc',
             backgroundColor: '#fafafa',
             padding: '10px',
+            display: 'none',
         });
         document.body.appendChild(popup);
 
