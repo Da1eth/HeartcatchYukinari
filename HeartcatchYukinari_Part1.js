@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part1
 // @namespace    https://github.com/Da1eth
-// @version      0.201
+// @version      0.2.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
