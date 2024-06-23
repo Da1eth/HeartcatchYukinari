@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part3
 // @namespace    https://github.com/Da1eth
-// @version      0.201
+// @version      0.202
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -20,68 +20,43 @@
             copyButton.addEventListener('click', () => {
                 const parentDiv = maskButton.closest('div[id]');
                 const contentDiv = parentDiv.querySelector('.content');
-                if (contentDiv) {
-                    const transformedString = transformContent(contentDiv.innerHTML);
-                    GM_setClipboard(transformedString);
+                let htmlToCopy = contentDiv.innerHTML;
+
+                const patterns = {
+                    firstWhitespace: /^\n {16}/,
+                    lastWhitespace: / {4}$/,
+                    brTag: /<br>/g,
+                    monaTag: /<p class="mona">/g,
+                    closemonaTag: /<\/p>/g,
+                    rubyTag: /<ruby>(.*?)<rt>(.*?)<\/rt><\/ruby>/g,
+                    spoilerTag: /<span class="spoiler">/g,
+                    clrTag: /<span style="color: ([^;"]+);?">/g,
+                    shadowTag: /<span style="color: ([^;"]+); text-shadow: 0px 0px 6px ([^;"]+);?">/g,
+                    closeTag: /<\/span>/g
+                };
+
+                htmlToCopy = htmlToCopy.replace(patterns.firstWhitespace, '')
+                    .replace(patterns.lastWhitespace, '')
+                    .replace(patterns.brTag, '\n')
+                    .replace(patterns.monaTag, '')
+                    .replace(patterns.closemonaTag, '')
+                    .replace(patterns.rubyTag, '<ruby $2>$1</ruby>')
+                    .replace(patterns.spoilerTag, '<spo>')
+                    .replace(patterns.shadowTag, (match, color1, color2) => {
+                    return `<clr ${color1} ${color2}>`;
+                })
+                    .replace(patterns.clrTag, (match, color1) => {
+                    return `<clr ${color1}>`;
+                })
+                    .replace(patterns.closeTag, '</clr>');
+
+                navigator.clipboard.writeText(htmlToCopy).then(() => {
                     alert('성공!');
-                }
+                }).catch(err => {
+                    alert('실패...');
+                });
             });
             maskButton.appendChild(copyButton);
         });
     });
-
-    function transformContent(content) {
-        const div = document.createElement('div');
-        div.innerHTML = content;
-        return parseElement(div).trimOnly();
-    }
-
-    function parseElement(element) {
-        let result = '';
-        element.childNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE) {
-                result += node.textContent;
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                const tagName = node.tagName.toLowerCase();
-                const color = cssColorToHex(node.style.color || '');
-                const textShadow = node.style.textShadow || '';
-                const shadowColor = textShadow.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(\.\d+)?))?\)|#([0-9a-f]{3,8})|(\w+)/i);
-                const shadowColorString = shadowColor ? cssColorToHex(shadowColor[0]) : '';
-
-                let startTag = '', endTag = '';
-
-                if (tagName === 'span') {
-                    startTag = node.className.includes('spoiler') ? '<spo>' : `<clr ${color}${shadowColorString ? ' ' + shadowColorString : ''}>`;
-                    endTag = '</clr>';
-                } else if (tagName === 'br') {
-                    result += '\n';
-                } else if (tagName === 'ruby') {
-                    const rtNode = node.querySelector('rt');
-                    if (rtNode) {
-                        const rtText = parseElement(rtNode);
-                        node.removeChild(rtNode);
-                        const rubyText = parseElement(node);
-                        result += `<ruby ${rtText}>${rubyText}</ruby>`;
-                        return;
-                    }
-                }
-
-                result += startTag + parseElement(node) + endTag;
-            }
-        });
-        return result;
-    }
-
-    function cssColorToHex(color) {
-        color = color.trim();
-        if (!color) return '';
-
-        const ctx = document.createElement('canvas').getContext('2d');
-        ctx.fillStyle = color;
-        return ctx.fillStyle === color ? color : '';
-    }
-
-    String.prototype.trimOnly = function() {
-        return this.replace(/^\n\s{0,16}/, '').replace(/\s+$/, '');
-    };
 })();
