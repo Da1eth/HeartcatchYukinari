@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part3
 // @namespace    https://github.com/Da1eth
-// @version      0.2.1
+// @version      0.2.2
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -11,6 +11,12 @@
 
 (function() {
     'use strict';
+
+        function decodeHtmlEntities(text) {
+        const textArea = document.createElement('textarea');
+        textArea.innerHTML = text;
+        return textArea.value;
+    }
 
     window.addEventListener('load', () => {
         document.querySelectorAll('.response_mask_button').forEach(maskButton => {
@@ -25,6 +31,7 @@
                 const patterns = {
                     firstWhitespace: /^\n {16}/,
                     lastWhitespace: / {4}$/,
+                    hrefTag: /<a href="[^"]*">(.*?)<\/a>/g,
                     brTag: /<br>/g,
                     monaTag: /<p class="mona">/g,
                     closemonaTag: /<\/p>/g,
@@ -38,6 +45,7 @@
 
                 htmlToCopy = htmlToCopy.replace(patterns.firstWhitespace, '')
                     .replace(patterns.lastWhitespace, '')
+                    .replace(patterns.hrefTag, '$1')
                     .replace(patterns.brTag, '\n')
                     .replace(patterns.monaTag, '')
                     .replace(patterns.closemonaTag, '')
@@ -55,6 +63,8 @@
                     return `<clr ${color1}>`;
                 })
                     .replace(patterns.closeTag, '</clr>');
+
+                htmlToCopy = decodeHtmlEntities(htmlToCopy);
 
                 navigator.clipboard.writeText(htmlToCopy).then(() => {
                     alert('성공!');
