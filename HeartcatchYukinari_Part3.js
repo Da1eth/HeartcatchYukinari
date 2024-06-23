@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part3
 // @namespace    https://github.com/Da1eth
-// @version      0.202
+// @version      0.2.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -28,6 +28,7 @@
                     brTag: /<br>/g,
                     monaTag: /<p class="mona">/g,
                     closemonaTag: /<\/p>/g,
+                    diceTag: /<span style="color:[^;]+; font-weight:[^;]+;">\.dice \d+ \d+\..*?<\/span>/g,
                     rubyTag: /<ruby>(.*?)<rt>(.*?)<\/rt><\/ruby>/g,
                     spoilerTag: /<span class="spoiler">/g,
                     clrTag: /<span style="color: ([^;"]+);?">/g,
@@ -40,6 +41,11 @@
                     .replace(patterns.brTag, '\n')
                     .replace(patterns.monaTag, '')
                     .replace(patterns.closemonaTag, '')
+                    .replace(patterns.diceTag, match => {
+                        const dicePattern = /\.dice \d+ \d+\./;
+                        const diceMatch = match.match(dicePattern);
+                        return diceMatch ? diceMatch[0] : '';
+                    })
                     .replace(patterns.rubyTag, '<ruby $2>$1</ruby>')
                     .replace(patterns.spoilerTag, '<spo>')
                     .replace(patterns.shadowTag, (match, color1, color2) => {
