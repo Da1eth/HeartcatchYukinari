@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part6
 // @namespace    https://github.com/Da1eth
-// @version      0.1
+// @version      0.1.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -34,7 +34,7 @@
     }
 
     function applyLink(el) {
-        const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/g;
+        const urlRegex = /https?:\/\/[^\s<>"'`{}|\\^~[\]`]+/g;
         el.innerHTML = el.innerHTML.replace(urlRegex, match => `<a href="${match}" target="_blank">${match}</a>`);
     }
 
