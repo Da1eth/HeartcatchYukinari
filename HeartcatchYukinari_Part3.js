@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part3
 // @namespace    https://github.com/Da1eth
-// @version      0.3
+// @version      0.3.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -49,18 +49,18 @@
                 .replace(patterns.monaTag, '')
                 .replace(patterns.closemonaTag, '')
                 .replace(patterns.diceTag, match => {
-                    const dicePattern = /\.dice \d+ \d+\./;
-                    const diceMatch = match.match(dicePattern);
-                    return diceMatch ? diceMatch[0] : '';
-                })
+                const dicePattern = /\.dice \d+ \d+\./;
+                const diceMatch = match.match(dicePattern);
+                return diceMatch ? diceMatch[0] : '';
+            })
                 .replace(patterns.rubyTag, '<ruby $2>$1</ruby>')
                 .replace(patterns.spoilerTag, '<spo>')
                 .replace(patterns.shadowTag, (match, color1, color2) => {
-                    return `<clr ${color1} ${color2}>`;
-                })
+                return `<clr ${color1} ${color2}>`;
+            })
                 .replace(patterns.clrTag, (match, color1) => {
-                    return `<clr ${color1}>`;
-                })
+                return `<clr ${color1}>`;
+            })
                 .replace(patterns.closeTag, '</clr>');
 
             htmlToCopy = decodeHtmlEntities(htmlToCopy);
@@ -84,9 +84,11 @@
                 if (mutation.type === 'childList') {
                     mutation.addedNodes.forEach(node => {
                         if (node.nodeType === 1) {
-                            node.querySelectorAll('.response_mask_button').forEach(maskButton => {
-                                addCopyButton(maskButton);
-                            });
+                            if (!node.classList.contains('test_response')) {
+                                node.querySelectorAll('.response_mask_button').forEach(maskButton => {
+                                    addCopyButton(maskButton);
+                                });
+                            }
                         }
                     });
                 }
