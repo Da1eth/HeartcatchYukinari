@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KneelBigDIEGO
 // @namespace    https://github.com/Da1eth
-// @version      0.1
+// @version      0.1.1
 // @description  maybe good script with AAMZ
 // @author       Daleth
 // @match        https://aa.yaruyomi.com/*
@@ -13,12 +13,12 @@
     'use strict';
 
     const bigDIEGO = {
-        "まとめZIP": "마토메 ZIP",
+        "まとめZIP ": "마토메 ZIP ",
         "検索": "검색",
         "見出し検索": "소제목 검색",
         "フィルター": "파일 이름 검색",
         "検索文字列": "검색할 내용을 입력",
-        "前バージョンとの比較": "이전 버전과의 차이점",
+        "前バージョンとの比較": "신규 작성/수정된 파일",
         "ブックマーク": "북마크",
         "お知らせ": "공지사항",
         "設定": "설정",
@@ -40,6 +40,7 @@
         "更新情報": "파일 갱신 기록",
         "個別ページを開く": "새 창에서 열기",
         "個別ページ表示": "새 창에서 열기",
+        "　個別ページ表示": "새 창에서 열기",
         "名前を変更": "이름 바꾸기",
         "フォルダをブックマークに追加": "폴더를 북마크에 추가",
         "フォルダをダウンロード": "폴더를 다운로드",
@@ -48,12 +49,14 @@
         "フォルダ追加": "폴더 만들기",
         "全て削除": "전부 삭제",
         "ブックマークから削除": "북마크에서 삭제",
+        "　ブックマークから削除": "북마크에서 삭제",
         "このAAをコピー": "AA를 복사",
         "サムネイル": "섬네일",
         "サムネイル画像.zip": "AA섬네일.zip",
         "画像を保存": "섬네일 이미지를 저장",
         "画像化して保存": "이미지로 저장",
         "ダウンロード": "다운로드",
+        "　ダウンロード": "다운로드",
         "ダウンロード履歴をクリアしてもよろしいですか？": "다운로드 기록을 전부 삭제해도 괜찮을까요?",
         "まとめZIPファイルをミラーからダウンロード": "마토메 ZIP 파일 전체를 다운로드",
         "ダウンロード履歴（最大 30 件） ※個別ページのダウンロードは対象外です": "파일 다운로드 기록 (최대 30개) ※새 창에서 열기로 다운로드한 내역은 기록되지 않습니다.",
@@ -69,41 +72,34 @@
         "全てのタブを閉じてもよろしいですか？": "탭을 전부 닫아도 괜찮을까요?",
     };
 
-    const translateText = text => text.replace(/(\d+)\s?文字/, "$1 자")
-                                       .replace(/.*/, match => bigDIEGO[match] || match);
+    const translateText = text => {
+        return text.replace(/(\d+)\s?文字/, "$1 자")
+            .replace(/.*/, match => bigDIEGO[match] || match);
+    };
 
-    const translateNode = node => {
-        node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('view-aa-content') &&
-        (node.tagName === 'INPUT' && node.placeholder
+    const translateUI = node => {
+        node.nodeType === Node.ELEMENT_NODE && (
+            node.tagName === 'INPUT' && node.placeholder
             ? node.placeholder = translateText(node.placeholder)
-            : node.childNodes.forEach(translateNode));
+            : node.childNodes.forEach(translateUI)
+        );
 
-        node.nodeType === Node.TEXT_NODE && node.textContent.trim() &&
-        (node.textContent = translateText(node.textContent.trim()));
+        node.nodeType === Node.TEXT_NODE && (
+            node.textContent = translateText(node.textContent)
+        );
     };
 
     const observe = () => {
         new MutationObserver(mutations => {
             mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-                node.nodeType === Node.ELEMENT_NODE ? (translateNode(node), node.querySelectorAll('*').forEach(translateNode))
-                : node.nodeType === Node.TEXT_NODE && translateNode(node);
+                translateUI(node);
+                node.nodeType === Node.ELEMENT_NODE && node.querySelectorAll('*').forEach(translateUI);
             }));
         }).observe(document.body, { childList: true, subtree: true });
     };
 
-    const translateUI = () => {
-        const walker = document.createTreeWalker(
-            document.body,
-            NodeFilter.SHOW_ELEMENT,
-            { acceptNode: node => node.classList.contains('view-aa-content') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT },
-            false
-        );
-        let node;
-        while (node = walker.nextNode()) translateNode(node);
-    };
-
     window.addEventListener('load', () => {
-        translateUI();
+        document.body.querySelectorAll('*').forEach(translateUI);
         observe();
     });
 })();
