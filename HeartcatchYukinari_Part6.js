@@ -54,6 +54,8 @@
     };
 
     const fetchData = async () => {
+        if (!document.hasFocus()) return;
+
         try {
             const response = await fetch(`/trace.php/${boardUid}/${threadUid}/recent/30`);
             const text = await response.text();
