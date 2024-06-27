@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part6
 // @namespace    https://github.com/Da1eth
-// @version      0.1.4
+// @version      0.1.5
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -54,7 +54,7 @@
     };
 
     const fetchData = async () => {
-        if (!document.hasFocus()) return;
+        if (document.visibilityState !== 'visible') return;
 
         try {
             const response = await fetch(`/trace.php/${boardUid}/${threadUid}/recent/30`);
