@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part6
 // @namespace    https://github.com/Da1eth
-// @version      0.1.5
+// @version      0.1.6
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -12,7 +12,7 @@
 (function() {
     'use strict';
 
-    let boardUid, threadUid;
+    let boardUid, threadUid, intervalId;
 
     function recentCheck(url) {
         const urlPattern = /trace\.php\/([^\/]+)\/([^\/]+)\/recent(\/[^\/]+)?(#.*)?$/;
@@ -82,9 +82,13 @@
         }
     };
 
-    const intervalId = setInterval(fetchData, 15000);
+    const visibilityChange = () => {
+        document.visibilityState === 'visible'
+            ? intervalId = intervalId || setInterval(fetchData, 15000)
+            : intervalId && (clearInterval(intervalId), intervalId = null);
+    };
 
-    window.addEventListener('beforeunload', () => {
-        clearInterval(intervalId);
-    });
+    document.addEventListener('visibilitychange', visibilityChange);
+    document.visibilityState === 'visible' && visibilityChange();
+
 })();
