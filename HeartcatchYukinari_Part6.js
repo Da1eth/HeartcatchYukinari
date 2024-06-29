@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part6
 // @namespace    https://github.com/Da1eth
-// @version      0.1.6
+// @version      0.1.7
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -56,10 +56,9 @@
     const fetchData = async () => {
         if (document.visibilityState !== 'visible') return;
 
-        try {
-            const response = await fetch(`/trace.php/${boardUid}/${threadUid}/recent/30`);
-            const text = await response.text();
-
+        fetch(`/trace.php/${boardUid}/${threadUid}/recent/30`)
+            .then(response => response.text())
+            .then(text => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, 'text/html');
 
@@ -77,18 +76,15 @@
                     threadBody.appendChild(clonedDiv);
                 }
             });
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
+        })
+            .catch(() => {});
     };
-
     const visibilityChange = () => {
         document.visibilityState === 'visible'
             ? intervalId = intervalId || setInterval(fetchData, 15000)
-            : intervalId && (clearInterval(intervalId), intervalId = null);
+        : intervalId && (clearInterval(intervalId), intervalId = null);
     };
 
     document.addEventListener('visibilitychange', visibilityChange);
     document.visibilityState === 'visible' && visibilityChange();
-
 })();
