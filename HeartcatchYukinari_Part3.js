@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part3
 // @namespace    https://github.com/Da1eth
-// @version      0.3.1
+// @version      0.3.2
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -30,7 +30,7 @@
             const patterns = {
                 firstWhitespace: /^\n {16}/,
                 lastWhitespace: / {4}$/,
-                hrefTag: /<a href="[^"]*">(.*?)<\/a>/g,
+                hrefTag: /<a\s+[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi,
                 brTag: /<br>/g,
                 monaTag: /<p class="mona">/g,
                 closemonaTag: /<\/p>/g,
@@ -44,7 +44,9 @@
 
             htmlToCopy = htmlToCopy.replace(patterns.firstWhitespace, '')
                 .replace(patterns.lastWhitespace, '')
-                .replace(patterns.hrefTag, '$1')
+                .replace(patterns.hrefTag, (match, href, text) => {
+                return text;
+            })
                 .replace(patterns.brTag, '\n')
                 .replace(patterns.monaTag, '')
                 .replace(patterns.closemonaTag, '')
