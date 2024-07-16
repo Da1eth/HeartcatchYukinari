@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part1
 // @namespace    https://github.com/Da1eth
-// @version      0.2.1
+// @version      0.2.2
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -14,11 +14,11 @@
 
     document.head.append(Object.assign(document.createElement('style'), {
         textContent: `
-            ruby {
+            p.mona ruby {
                 position: relative;
                 display: inline-block;
             }
-            rt {
+            p.mona rt {
                 position: absolute;
                 display: block;
                 width: 100%;
