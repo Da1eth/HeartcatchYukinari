@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part7
 // @namespace    https://github.com/Da1eth
-// @version      0.1
+// @version      0.1.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -12,7 +12,7 @@
 (function() {
     'use strict';
 
-    const unicodeSpaceList = ['\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A'];
+    const unicodeSpaceList = ['\u2002', '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A'];
 
     const space = () => {
         const checkSpace = Array.from(document.querySelectorAll('.post_form_console'))
