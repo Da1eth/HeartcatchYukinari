@@ -26,12 +26,12 @@
         { char: ' ', length: 1 }
     ];
 
+    const spaceOptions = [...commonSpace, ...unicodeSpace];
+
     const getSpaceLength = (char) => {
-        const space = [...commonSpace, ...unicodeSpace].find(space => space.char === char);
+        const space = spaceOptions.find(space => space.char === char);
         return space ? space.length : 0;
     };
-
-    const spaceOptions = [...commonSpace, ...unicodeSpace];
 
     const getSpaceString = (length) => {
         const oberon = Array(length + 1).fill(null);
@@ -49,13 +49,7 @@
         return oberon[length];
     };
 
-    const replaceSpacesAndMoveCursor = (startPos, endPos, spaceLength) => {
-        const newSpaceString = getSpaceString(spaceLength);
-        if (!newSpaceString) return;
-
-        const textarea = document.querySelector('textarea');
-        const text = textarea.value;
-
+    const replaceSpacesAndMoveCursor = (textarea, text, startPos, endPos, newSpaceString) => {
         const newText = text.slice(0, startPos) + newSpaceString + text.slice(endPos);
         textarea.value = newText;
         textarea.setSelectionRange(startPos + newSpaceString.length, startPos + newSpaceString.length);
@@ -86,7 +80,10 @@
 
         if (spaceLength > 0) {
             spaceLength += (event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0);
-            replaceSpacesAndMoveCursor(startPos, endPos, spaceLength);
+            const newSpaceString = getSpaceString(spaceLength);
+            if (newSpaceString) {
+                replaceSpacesAndMoveCursor(textarea, text, startPos, endPos, newSpaceString);
+            }
         }
     });
 })();
