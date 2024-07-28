@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part1
 // @namespace    https://github.com/Da1eth
-// @version      0.2.2
+// @version      0.2.3
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -28,7 +28,7 @@
         `
     }));
 
-    const nctToChar = (text) => text.replace(/&#(x?)([0-9a-fA-F]+);/gm, (_, isHex, match) => String.fromCodePoint(parseInt(match, isHex ? 16 : 10)));
+    const nctToChar = (text) => text.replace(/&#(0x?)([0-9a-fA-F]+);/gm, (_, isHex, match) => String.fromCodePoint(parseInt(match, isHex ? 16 : 10)));
 
     const handleElementInput = (evt) => {
         evt.target.value = nctToChar(evt.target.value);
