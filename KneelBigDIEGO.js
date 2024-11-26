@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KneelBigDIEGO
 // @namespace    https://github.com/Da1eth
-// @version      0.1.2
+// @version      0.1.5
 // @description  maybe good script with AAMZ
 // @author       Daleth
 // @match        https://aa.yaruyomi.com/*
@@ -71,6 +71,8 @@
         "ソース表示": "소스 보기",
         "全てのタブを閉じる": "모든 탭 닫기",
         "全てのタブを閉じてもよろしいですか？": "탭을 전부 닫아도 괜찮을까요?",
+        "ブックマークを全て削除してもよろしいですか？": "북마크를 전부 삭제해도 괜찮을까요?",
+        "ブックマークは全て置き換えられますが、よろしいですか？": "북마크를 전부 덮어쓰기해도 괜찮을까요?",
     };
 
     const translateText = text => {
@@ -99,8 +101,37 @@
         }).observe(document.body, { childList: true, subtree: true });
     };
 
+    const originalConfirm = window.confirm;
+    window.confirm = (message) => {
+        return originalConfirm(translateText(message));
+    };
+
     window.addEventListener('load', () => {
         document.body.querySelectorAll('*').forEach(translateUI);
         observe();
     });
+
+    document.addEventListener('click', (event) => {
+        if (event.ctrlKey && event.altKey) {
+            const content = event.target.closest('.view-aa-row')?.querySelector('.view-aa-content[data-idx]');
+            if (content) {
+                const dataIdx = parseInt(content.getAttribute('data-idx'), 10);
+                if (!isNaN(dataIdx)) {
+                    const allContents = Array.from(document.querySelectorAll('.view-aa-content[data-idx]'));
+                    const upperHeight = allContents
+                    .slice(0, allContents.findIndex((el) => el === content))
+                    .reduce((sum, el) => sum + el.getBoundingClientRect().height, 0);
+                    const result = upperHeight + (dataIdx * 41) + 144;
+
+                    confirm(`현재 scrollTop은 ${result} 입니다. 복사할까요?`) &&
+                        navigator.clipboard.writeText(`"scrollTop": ${result},`).then(() => {
+                        alert('성공!');
+                    }).catch(err => {
+                        alert('실패...');
+                    });
+                }
+            }
+        }
+    });
+
 })();
