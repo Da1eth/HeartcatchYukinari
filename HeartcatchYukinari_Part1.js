@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part1
 // @namespace    https://github.com/Da1eth
-// @version      0.2.6
+// @version      0.3.0
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -12,33 +12,36 @@
 (function() {
     'use strict';
 
-    document.head.append(Object.assign(document.createElement('style'), {
-        textContent: `
-            p.mona ruby {
-                position: relative;
-                display: inline-block;
-            }
-            p.mona rt {
-                position: absolute;
-                display: block;
-                width: 100%;
-                top: -1em;
-                text-align: center;
-            }
-        `
-    }));
+    const rubyStyle = `
+        p.mona ruby.downer { line-height: 1em; position: relative; display: inline-block; }
+        p.mona rt.upper { display: block; width: 100%; top: -1em; text-align: center; }
+    `;
+
+    const styleElement = document.createElement('style');
+    styleElement.textContent = rubyStyle;
+    document.head.appendChild(styleElement);
+
+    const processRubyTags = (ruby) => {
+        const hasOnlyRt = [...ruby.childNodes].every(node =>
+            node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RT' ||
+            node.nodeType === Node.TEXT_NODE && /^[\u0020]*$/.test(node.textContent)
+        );
+        hasOnlyRt && (ruby.classList.add('downer'), ruby.querySelectorAll('rt').forEach(rt => rt.classList.add('upper')));
+    };
+
+    document.querySelectorAll('ruby').forEach(processRubyTags);
+
+    new MutationObserver(mutations => mutations.forEach(({ addedNodes }) =>
+        [...addedNodes].forEach(node => node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RUBY' ? processRubyTags(node) : node.querySelectorAll && node.querySelectorAll('ruby').forEach(processRubyTags))
+    )).observe(document.body, { childList: true, subtree: true });
+
 
     const nctToChar = (text) => text.replace(/&#(0x|x)?([0-9a-fA-F]+);/gm, (_, isHex, match) => String.fromCodePoint(parseInt(match, isHex ? 16 : 10)));
 
-    const handleElementInput = (evt) => {
-        evt.target.value = nctToChar(evt.target.value);
-    };
-
-    const handleInput = (el) => {
+    const handleInput = el => {
         const nextEl = el.nextElementSibling;
-        el.value.split('.').includes('nct') ?
-            (nextEl.value = nctToChar(nextEl.value), nextEl.addEventListener('input', handleElementInput)) :
-        nextEl.removeEventListener('input', handleElementInput);
+        nextEl.value = el.value.includes('nct') ? nctToChar(nextEl.value) : nextEl.value;
+        nextEl.addEventListener('input', evt => { evt.target.value = nctToChar(evt.target.value); });
     };
 
     document.querySelectorAll('.post_form_console').forEach(el => {
