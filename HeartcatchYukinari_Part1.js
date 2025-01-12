@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part1
 // @namespace    https://github.com/Da1eth
-// @version      0.3.0
+// @version      0.3.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -35,13 +35,25 @@
         [...addedNodes].forEach(node => node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RUBY' ? processRubyTags(node) : node.querySelectorAll && node.querySelectorAll('ruby').forEach(processRubyTags))
     )).observe(document.body, { childList: true, subtree: true });
 
+    const shiftJisReturn = (text) =>
+    text.replace(
+        /[^\u0000-\u00FF\u0370-\u04FF\u2010-\u218F\u2200-\u23FF\u2500-\u25FF\u3000-\u9FFF\uFF01-\uFFEF]|[\u2027-\u202F]|[\u3130-\u318F]/g,
+        (char) => `&#${char.codePointAt(0)};`
+    );
 
     const nctToChar = (text) => text.replace(/&#(0x|x)?([0-9a-fA-F]+);/gm, (_, isHex, match) => String.fromCodePoint(parseInt(match, isHex ? 16 : 10)));
 
     const handleInput = el => {
         const nextEl = el.nextElementSibling;
-        nextEl.value = el.value.includes('nct') ? nctToChar(nextEl.value) : nextEl.value;
-        nextEl.addEventListener('input', evt => { evt.target.value = nctToChar(evt.target.value); });
+        const updateValue = () => el.value.includes('nct')
+        ? nextEl.value = nctToChar(nextEl.value)
+        : el.value.includes('ncn') && (nextEl.value = shiftJisReturn(nextEl.value));
+
+        if (!el.value.includes('nct') && !el.value.includes('ncn')) return;
+
+        nextEl.removeEventListener('input', updateValue);
+        nextEl.addEventListener('input', updateValue);
+        updateValue();
     };
 
     document.querySelectorAll('.post_form_console').forEach(el => {
