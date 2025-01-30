@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part8
 // @namespace    https://github.com/Da1eth
-// @version      0.1
+// @version      0.1.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
-// @match        https://bbs.tunaground.net/*
+// @include      https://*.tunaground.net/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tunaground.net
 // @grant        none
 // ==/UserScript==
