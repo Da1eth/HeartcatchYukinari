@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HeartcatchYukinari_Part1
 // @namespace    https://github.com/Da1eth
-// @version      0.3.1
+// @version      0.4.0
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs.tunaground.net/*
@@ -23,17 +23,17 @@
 
     const processRubyTags = (ruby) => {
         const hasOnlyRt = [...ruby.childNodes].every(node =>
-            node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RT' ||
-            node.nodeType === Node.TEXT_NODE && /^[\u0020]*$/.test(node.textContent)
-        );
+                                                     node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RT' ||
+                                                     node.nodeType === Node.TEXT_NODE && /^[\u0020]*$/.test(node.textContent)
+                                                    );
         hasOnlyRt && (ruby.classList.add('downer'), ruby.querySelectorAll('rt').forEach(rt => rt.classList.add('upper')));
     };
 
     document.querySelectorAll('ruby').forEach(processRubyTags);
 
     new MutationObserver(mutations => mutations.forEach(({ addedNodes }) =>
-        [...addedNodes].forEach(node => node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RUBY' ? processRubyTags(node) : node.querySelectorAll && node.querySelectorAll('ruby').forEach(processRubyTags))
-    )).observe(document.body, { childList: true, subtree: true });
+                                                        [...addedNodes].forEach(node => node.nodeType === Node.ELEMENT_NODE && node.tagName === 'RUBY' ? processRubyTags(node) : node.querySelectorAll && node.querySelectorAll('ruby').forEach(processRubyTags))
+                                                       )).observe(document.body, { childList: true, subtree: true });
 
     const shiftJisReturn = (text) =>
     text.replace(
@@ -59,6 +59,13 @@
     document.querySelectorAll('.post_form_console').forEach(el => {
         el.addEventListener('input', () => handleInput(el));
         el.dispatchEvent(new Event('input'));
+    });
+
+    document.addEventListener("keydown", event => {
+        const area = event.target;
+        event.ctrlKey && event.key === "Enter" && area.matches('textarea[name="content"]') &&
+            (event.preventDefault(),
+             [...document.querySelectorAll('button')].find(btn => btn.classList.contains('post_form_submit'))?.click());
     });
 
     if (window.location.href.includes('mthread.php')) {
