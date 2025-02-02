@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shingetsu_Main
 // @namespace    https://github.com/Da1eth
-// @version      0.1
+// @version      0.2
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs2.tunaground.net/*
@@ -54,19 +54,24 @@
     document.addEventListener('input', e => e.target.matches('textarea[name="content"]') && adjustHeight(e.target));
 
 
-    const deleteDice = new MutationObserver((mutationsList) => {
-        mutationsList.forEach(mutation =>
-                              (mutation.type === 'childList' || mutation.type === 'attributes') &&
-                              document.querySelectorAll('span').forEach(span => {
-            const beforeContent = window.getComputedStyle(span, '::before').content;
-            beforeContent.includes('[/dice]') &&
-                (span.style.setProperty('--before-content', beforeContent.replace('[/dice]', '')),
-                 span.classList.add('updated-before'));
-        })
-                             );
-    });
+    const articleNode = document.querySelector('article');
 
-    deleteDice.observe(document.body, { attributes: true, childList: true, subtree: true });
+    articleNode &&
+        (new MutationObserver((mutationsList) =>
+                              requestAnimationFrame(() =>
+                                                    mutationsList.forEach(mutation =>
+                                                                          mutation.type === 'childList'
+                                                                          ? mutation.addedNodes.forEach(node =>
+                                                                                                        node.nodeType === 1 && node.tagName === 'SPAN' && updateSpan(node))
+                                                                          : mutation.type === 'attributes' && mutation.target.tagName === 'SPAN' && updateSpan(mutation.target)
+                                                                         )
+                                                   )
+                             )).observe(articleNode, { attributes: true, childList: true, subtree: true });
+
+    const updateSpan = (span) =>
+    window.getComputedStyle(span, '::before').content.includes('[/dice]') &&
+          (span.style.setProperty('--before-content', window.getComputedStyle(span, '::before').content.replace('[/dice]', '')),
+           span.classList.add('updated-before'));
 
     document.head.appendChild(Object.assign(document.createElement('style'), {
         textContent: `span.updated-before::before { content: var(--before-content); color: red; }`
