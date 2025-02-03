@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shingetsu_Main
 // @namespace    https://github.com/Da1eth
-// @version      0.2
+// @version      0.21
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs2.tunaground.net/*
@@ -40,19 +40,21 @@
                                                       mutations.forEach(m => m.target.matches('textarea[name="content"]') && adjustHeight(m.target))
                                                      ).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
 
-    document.addEventListener("click", event => {
-        const link = event.target.closest("a[href]");
-        link && !link.href.startsWith(location.origin) &&
-            (event.preventDefault(), (newTab => newTab && newTab.focus())(window.open(link.href, "_blank")));
-    });
-
     window.addEventListener('load', () => {
-        document.querySelectorAll('textarea[name="content"]').forEach(adjustHeight);
+        document.querySelectorAll('textarea[name="content"]').forEach(textarea => {
+            textarea.style.whiteSpace = 'nowrap';
+            adjustHeight(textarea);
+        });
         heightObserver();
     });
 
     document.addEventListener('input', e => e.target.matches('textarea[name="content"]') && adjustHeight(e.target));
 
+    document.addEventListener("click", event => {
+        const link = event.target.closest("a[href]");
+        link && !link.href.startsWith(location.origin) &&
+            (event.preventDefault(), (newTab => newTab && newTab.focus())(window.open(link.href, "_blank")));
+    });
 
     const articleNode = document.querySelector('article');
 
