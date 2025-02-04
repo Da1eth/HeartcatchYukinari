@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shingetsu_Main
 // @namespace    https://github.com/Da1eth
-// @version      0.21
+// @version      0.22
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs2.tunaground.net/*
@@ -55,28 +55,5 @@
         link && !link.href.startsWith(location.origin) &&
             (event.preventDefault(), (newTab => newTab && newTab.focus())(window.open(link.href, "_blank")));
     });
-
-    const articleNode = document.querySelector('article');
-
-    articleNode &&
-        (new MutationObserver((mutationsList) =>
-                              requestAnimationFrame(() =>
-                                                    mutationsList.forEach(mutation =>
-                                                                          mutation.type === 'childList'
-                                                                          ? mutation.addedNodes.forEach(node =>
-                                                                                                        node.nodeType === 1 && node.tagName === 'SPAN' && updateSpan(node))
-                                                                          : mutation.type === 'attributes' && mutation.target.tagName === 'SPAN' && updateSpan(mutation.target)
-                                                                         )
-                                                   )
-                             )).observe(articleNode, { attributes: true, childList: true, subtree: true });
-
-    const updateSpan = (span) =>
-    window.getComputedStyle(span, '::before').content.includes('[/dice]') &&
-          (span.style.setProperty('--before-content', window.getComputedStyle(span, '::before').content.replace('[/dice]', '')),
-           span.classList.add('updated-before'));
-
-    document.head.appendChild(Object.assign(document.createElement('style'), {
-        textContent: `span.updated-before::before { content: var(--before-content); color: red; }`
-    }));
 
 })();
