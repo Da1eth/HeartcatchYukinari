@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shingetsu_Main
 // @namespace    https://github.com/Da1eth
-// @version      0.22
+// @version      0.3
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs2.tunaground.net/*
@@ -18,6 +18,7 @@
         const isEnterKey = key === 'Enter';
         const isTextarea = target.matches('textarea[name="content"]');
         const isInput = target.matches('input');
+        const isSubmitButton = target.matches('button[type="submit"]');
 
         isTabKey && isTextarea ? (
             event.preventDefault(),
@@ -27,6 +28,10 @@
             target.closest('form')?.querySelectorAll('input, textarea, button, select, a[href]')
             .item(Array.from(target.closest('form').querySelectorAll('input, textarea, button, select, a[href]')).indexOf(target) + 1)
             ?.focus()
+        ) : isEnterKey && isSubmitButton ? (
+            setTimeout(() => {
+                target.closest('form')?.querySelector('textarea[name="content"]')?.focus();
+            }, 250)
         ) : null;
     });
 
