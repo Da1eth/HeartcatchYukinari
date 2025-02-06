@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shingetsu_Main
 // @namespace    https://github.com/Da1eth
-// @version      1.0
+// @version      1.0.1
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs2.tunaground.net/*
@@ -41,14 +41,16 @@
         textarea.style.height = `${textarea.value.split('\n').length * normalHeight}px`;
     });
 
+    const heightObserver = () => new MutationObserver(mutations =>
+                                                      mutations.forEach(m => m.target.matches('textarea[name="content"]') && adjustHeight(m.target))
+                                                     ).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+
     window.addEventListener('load', () => {
         document.querySelectorAll('textarea[name="content"]').forEach(textarea => {
             textarea.style.whiteSpace = 'nowrap';
             adjustHeight(textarea);
         });
-        new MutationObserver(mutations =>
-                             mutations.forEach(m => m.target.matches('textarea[name="content"]') && adjustHeight(m.target))
-                            ).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+        heightObserver();
     });
 
     document.addEventListener('input', e => e.target.matches('textarea[name="content"]') && adjustHeight(e.target));
@@ -78,9 +80,9 @@
         });
     };
 
-    window.addEventListener('load', () => {
-        bbsLinks();
-        new MutationObserver(bbsLinks).observe(document.body, { childList: true, subtree: true });
-    });
+    window.addEventListener('load', bbsLinks);
+
+    const bbsLinkObserver = new MutationObserver(bbsLinks);
+    bbsLinkObserver.observe(document.body, { childList: true, subtree: true });
 
 })();
