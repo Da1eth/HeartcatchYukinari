@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shingetsu_Main
 // @namespace    https://github.com/Da1eth
-// @version      0.3
+// @version      1.0
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs2.tunaground.net/*
@@ -41,16 +41,14 @@
         textarea.style.height = `${textarea.value.split('\n').length * normalHeight}px`;
     });
 
-    const heightObserver = () => new MutationObserver(mutations =>
-                                                      mutations.forEach(m => m.target.matches('textarea[name="content"]') && adjustHeight(m.target))
-                                                     ).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
-
     window.addEventListener('load', () => {
         document.querySelectorAll('textarea[name="content"]').forEach(textarea => {
             textarea.style.whiteSpace = 'nowrap';
             adjustHeight(textarea);
         });
-        heightObserver();
+        new MutationObserver(mutations =>
+                             mutations.forEach(m => m.target.matches('textarea[name="content"]') && adjustHeight(m.target))
+                            ).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
     });
 
     document.addEventListener('input', e => e.target.matches('textarea[name="content"]') && adjustHeight(e.target));
@@ -59,6 +57,30 @@
         const link = event.target.closest("a[href]");
         link && !link.href.startsWith(location.origin) &&
             (event.preventDefault(), (newTab => newTab && newTab.focus())(window.open(link.href, "_blank")));
+    });
+
+    const bbsLinks = () => {
+        document.querySelectorAll('span > span').forEach(span => {
+            const matchLinks = span.textContent.match(/(\w+?)>(\d{10})>(\d+)(?:-(\d+))?/);
+            matchLinks && (() => {
+                const [, boardname, postnumber, response1, response2] = matchLinks;
+                const fullUrl = `https://bbs.tunaground.net/trace.php/${boardname}/${postnumber}/${response1}${response2 ? `/${response2}` : ''}`;
+
+                const parentSpan = span.parentElement;
+                const link = parentSpan.querySelector('a');
+                link && (link.href = fullUrl);
+
+                const newLink = document.createElement('a');
+                newLink.href = fullUrl;
+                newLink.appendChild(span.cloneNode(true));
+                span.replaceWith(newLink);
+            })();
+        });
+    };
+
+    window.addEventListener('load', () => {
+        bbsLinks();
+        new MutationObserver(bbsLinks).observe(document.body, { childList: true, subtree: true });
     });
 
 })();
