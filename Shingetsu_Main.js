@@ -55,34 +55,4 @@
 
     document.addEventListener('input', e => e.target.matches('textarea[name="content"]') && adjustHeight(e.target));
 
-    document.addEventListener("click", event => {
-        const link = event.target.closest("a[href]");
-        link && !link.href.startsWith(location.origin) &&
-            (event.preventDefault(), (newTab => newTab && newTab.focus())(window.open(link.href, "_blank")));
-    });
-
-    const bbsLinks = () => {
-        document.querySelectorAll('span > span').forEach(span => {
-            const matchLinks = span.textContent.match(/(\w+?)>(\d{10})>(\d+)(?:-(\d+))?/);
-            matchLinks && (() => {
-                const [, boardname, postnumber, response1, response2] = matchLinks;
-                const fullUrl = `https://bbs.tunaground.net/trace.php/${boardname}/${postnumber}/${response1}${response2 ? `/${response2}` : ''}`;
-
-                const parentSpan = span.parentElement;
-                const link = parentSpan.querySelector('a');
-                link && (link.href = fullUrl);
-
-                const newLink = document.createElement('a');
-                newLink.href = fullUrl;
-                newLink.appendChild(span.cloneNode(true));
-                span.replaceWith(newLink);
-            })();
-        });
-    };
-
-    window.addEventListener('load', bbsLinks);
-
-    const bbsLinkObserver = new MutationObserver(bbsLinks);
-    bbsLinkObserver.observe(document.body, { childList: true, subtree: true });
-
 })();
