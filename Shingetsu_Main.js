@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shingetsu_Main
 // @namespace    https://github.com/Da1eth
-// @version      1.0.1
+// @version      1.0.2
 // @description  maybe good script with Tunaground
 // @author       Daleth
 // @match        https://bbs2.tunaground.net/*
