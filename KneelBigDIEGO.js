@@ -14,7 +14,10 @@
 
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/1MSh8Sczp3Q-DR26buYT9PR9VYPgBYmXopyytNRaeSdw/gviz/tq?tqx=out:csv&sheet=CSV';
     const HEADER_TRANSLATION_STORAGE_KEY = 'bigdiegoTranslateHeader';
+    const BOOKMARK_BACKUP_STORAGE_KEY = 'bigdiegoBookmarkBackups';
+    const MAX_BOOKMARK_BACKUPS = 3;
     const HEADER_SETTING_SELECTOR = '[data-bigdiego-header-translation-checkbox]';
+    const BOOKMARK_BACKUP_EXPORT_SELECTOR = '[data-bigdiego-bookmark-backup-export]';
     const TRANSLATION_SETTING_SELECTOR = '[data-bigdiego-translation-settings]';
     const SETTINGS_TITLES = new Set(['設定', '설정']);
     const ACTION_SETTING_TITLES = new Set(['動作設定', '일반 동작 설정']);
@@ -99,6 +102,13 @@
     const textOf = (node) => (node?.textContent || '').trim();
     const translateText = (text) => bigDIEGO[text] || text.replace(/(\d+)\s?文字/g, '$1 자');
     const setIfChanged = (node, prop, value) => node[prop] !== value ? node[prop] = value : null;
+    const parseJSON = (value, fallback = null) => {
+        try {
+            return JSON.parse(value);
+        } catch {
+            return fallback;
+        }
+    };
     const isElement = (node) => node?.nodeType === ELEMENT_NODE;
     const isTextNode = (node) => node?.nodeType === TEXT_NODE;
     const isIgnoredUiNode = (node) => isElement(node) && (
@@ -188,6 +198,74 @@
         return vueApp?._instance?.proxy || vueApp?._container?._vnode?.component?.proxy || null;
     };
 
+    const getBookmarkBackups = () => parseJSON(localStorage.getItem(BOOKMARK_BACKUP_STORAGE_KEY), []) || [];
+
+    const isBackupableBookmarks = (bookmarks) => Array.isArray(bookmarks) && bookmarks.length > 0;
+
+    const cloneBookmarks = (bookmarks) => parseJSON(JSON.stringify(bookmarks), []);
+
+    const saveBookmarkBackup = (bookmarks, source = 'unknown') => {
+        if (!isBackupableBookmarks(bookmarks)) return false;
+
+        const snapshot = cloneBookmarks(bookmarks);
+        const signature = JSON.stringify(snapshot);
+        const backups = getBookmarkBackups().filter((backup) => backup?.signature !== signature);
+
+        backups.unshift({
+            savedAt: new Date().toISOString(),
+            source,
+            signature,
+            bookmarks: snapshot,
+        });
+
+        try {
+            localStorage.setItem(BOOKMARK_BACKUP_STORAGE_KEY, JSON.stringify(backups.slice(0, MAX_BOOKMARK_BACKUPS)));
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    const backupCurrentBookmarks = (source = 'manual') => {
+        const proxyBookmarks = getVueProxy()?.bookmarks;
+        const storedBookmarks = parseJSON(localStorage.getItem('aamz_bookmarks'), []);
+        return saveBookmarkBackup(isBackupableBookmarks(proxyBookmarks) ? proxyBookmarks : storedBookmarks, source);
+    };
+
+    const downloadJSON = (data, filename) => {
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const anchor = Object.assign(document.createElement('a'), { download: filename, href: url });
+        anchor.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    };
+
+    const exportLatestBookmarkBackup = () => {
+        backupCurrentBookmarks('export');
+
+        const latest = getBookmarkBackups()[0];
+        if (!latest?.bookmarks?.length) {
+            alert('내보낼 북마크 백업이 없습니다.');
+            return;
+        }
+
+        const stamp = latest.savedAt.replace(/[:.]/g, '-');
+        downloadJSON(latest.bookmarks, `AAMZViewerBookmarks.backup.${stamp}.json`);
+    };
+
+    const patchBookmarkStorageWrites = () => {
+        const storagePrototype = Storage.prototype;
+        if (storagePrototype.__bigDiegoBookmarkBackupPatched) return;
+
+        const originalSetItem = storagePrototype.setItem;
+        storagePrototype.setItem = function(key, value) {
+            key === 'aamz_bookmarks' ? saveBookmarkBackup(parseJSON(value, []), 'localStorage-set') : null;
+            return originalSetItem.apply(this, arguments);
+        };
+
+        Object.defineProperty(storagePrototype, '__bigDiegoBookmarkBackupPatched', { value: true });
+    };
+
     const updateHeaderTranslationCheckbox = () => {
         const icon = document.querySelector(`${HEADER_SETTING_SELECTOR} .icon`);
         if (!icon) return;
@@ -264,15 +342,22 @@
         section.className = 'section';
         section.dataset.bigdiegoTranslationSettings = 'true';
         section.innerHTML = [
-            '<h3>번역 설정</h3>',
+            '<h3>스크립트 설정</h3>',
             `<span class="checkbox" ${HEADER_SETTING_SELECTOR.slice(1, -1)}>`,
             '<span class="icon"></span>',
             '<span class="label">파일 패스 및 이름 헤더 번역</span>',
             '</span>',
+            '<p style="margin: 8px 0 0;">',
+            `<button class="info" type="button" style="padding: 5px;" ${BOOKMARK_BACKUP_EXPORT_SELECTOR.slice(1, -1)}>북마크 백업 내보내기</button>`,
+            '</p>',
         ].join('');
         section.querySelector(HEADER_SETTING_SELECTOR)?.addEventListener('click', (event) => {
             event.stopPropagation();
             setHeaderTranslationEnabled(!headerTranslationEnabled);
+        });
+        section.querySelector(BOOKMARK_BACKUP_EXPORT_SELECTOR)?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            exportLatestBookmarkBackup();
         });
         return section;
     };
@@ -341,6 +426,12 @@
             : null;
 
         proxy.__bigDiegoPatched = true;
+
+        backupCurrentBookmarks('vue-patch');
+        typeof proxy.$watch === 'function'
+            ? proxy.$watch(() => proxy.bookmarks, (bookmarks) => saveBookmarkBackup(bookmarks, 'vue-watch'), { deep: true })
+            : null;
+
         return true;
     };
 
@@ -464,6 +555,12 @@
             : null;
     });
 
+    const bindBookmarkBackupProtection = () => {
+        patchBookmarkStorageWrites();
+        backupCurrentBookmarks('boot');
+        window.addEventListener('beforeunload', () => backupCurrentBookmarks('beforeunload'));
+    };
+
     const bootUI = () => {
         translateUI(document.body);
         injectTranslationSetting();
@@ -472,6 +569,7 @@
 
     bindConfirmTranslation();
     bindScrollTopDebugCopy();
+    bindBookmarkBackupProtection();
     detectAxios();
     detectVueApp();
     document.readyState === 'loading'
