@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KneelBigDIEGO
 // @namespace    https://github.com/Da1eth
-// @version      1.0
+// @version      1.0.1
 // @description  maybe good script with AAMZ
 // @author       Daleth
 // @match        https://aa.yaruyomi.com/*
@@ -389,10 +389,14 @@
                 continue;
             }
 
+            if (matchesName(item, searchText)) {
+                matched = true;
+                continue;
+            }
+
             const childMatched = item.child ? filterFolders(item.child, flags, searchText) : false;
-            const itemMatched = matchesName(item, searchText) || childMatched;
-            matched = itemMatched ? true : matched;
-            itemMatched ? null : flags[item.hash] = true;
+            matched = childMatched ? true : matched;
+            childMatched ? null : flags[item.hash] = true;
         }
 
         return matched;
